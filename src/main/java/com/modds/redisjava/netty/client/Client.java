@@ -14,8 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class Client {
@@ -36,7 +34,7 @@ public class Client {
                     });
 
             log.info("Client starting...");
-            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 6380).sync();
+            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 6379).sync();
             channelFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
@@ -53,12 +51,12 @@ public class Client {
             String in = br.readLine();
             while (!"exit".equals(in)) {
                 if (StringUtils.isNotBlank(in)) {
-                    String ened = RedisProtocolParser.encoding(in);
-                    String cmd = Arrays.stream(in.split(" ")).map(s -> "\"" + s + "\"").collect(Collectors.joining(" "));
+                    byte[] buf = RedisProtocolParser.encoding(in);
+//                    String cmd = Arrays.stream(in.split(" ")).map(s -> "\"" + s + "\"").collect(Collectors.joining(" "));
 //                    log.info("INPUT: {}", cmd);
-                    log.info("INPUT: {}", ened.toCharArray());
+//                    log.info("INPUT: {}", ened.toCharArray());
 
-                    channel.writeAndFlush(ened.toCharArray());
+                    channel.writeAndFlush(buf);
                 }
                 in = br.readLine();
             }

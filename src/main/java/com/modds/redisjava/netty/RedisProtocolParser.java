@@ -30,28 +30,34 @@ public class RedisProtocolParser {
         return res.toArray(new String[]{});
     }
 
-    public static String encoding(String s) {
+    public static byte[] encoding(String s) {
         if (StringUtils.isBlank(s)) return null;
-        StringBuilder sb = new StringBuilder();
+        List<Byte> buf = new ArrayList<>(8123);
 
         String[] str = s.trim().split(" ");
 
-        sb.append('*')
-                .append(str.length + '0')
-                .append(CR)
-                .append(LF);
+        buf.add((byte) '*');
+        buf.add((byte) (str.length + '0'));
+        buf.add((byte) CR);
+        buf.add((byte) LF);
         for (int i = 0; i < str.length; i++) {
-            sb.append('$')
-                    .append('0' + str[i].length())
-                    .append(CR)
-                    .append(LF)
-                    .append(str[i])
-                    .append(CR)
-                    .append(LF);
+            buf.add((byte) '$');
+            buf.add((byte) ('0' + str[i].length()));
+            buf.add((byte) CR);
+            buf.add((byte) LF);
+            for (char c : str[i].toCharArray()) {
+                buf.add((byte) c);
+            }
+            buf.add((byte) CR);
+            buf.add((byte) LF);
         }
 
-        log.debug("encoding: {}", sb);
-        return sb.toString();
+        byte[] res = new byte[buf.size()];
+        for (int i = 0; i < buf.size(); i++) {
+            res[i] = buf.get(i).byteValue();
+        }
+        log.debug("encoding: {}", new String(res));
+        return res;
     }
 
     public static StringBuilder crlf(StringBuilder sb) {
